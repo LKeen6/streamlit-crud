@@ -29,9 +29,10 @@ def create_post(title, body, user_id):
     cursor.close()
     conn.close()
 
-def list_posts(created_by=None):
+def list_posts(created_by=None, limit=None):
     """Newest first: (id, title, body, created_by, updated_by, created_at, updated_at, creator_id),
-    usernames for the by-columns. Pass created_by (a user id) to only get that user's posts."""
+    usernames for the by-columns. Pass created_by (a user id) to only get that user's posts,
+    and limit to cap how many come back."""
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("""
@@ -41,7 +42,8 @@ def list_posts(created_by=None):
         LEFT JOIN users updater ON updater.id = p.updated_by
         WHERE %(created_by)s IS NULL OR p.created_by = %(created_by)s
         ORDER BY p.created_at DESC
-    """, {'created_by': created_by})
+        LIMIT %(limit)s
+    """, {'created_by': created_by, 'limit': limit})
     posts = cursor.fetchall()
     cursor.close()
     conn.close()

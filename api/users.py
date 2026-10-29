@@ -31,6 +31,16 @@ def authenticate(username, password):
         return user[0]
     return None
 
+def get_user(user_id):
+    """Return (id, username) for the user, or None if they don't exist."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT id, username FROM users WHERE id = %s', (user_id,))
+    user = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    return user
+
 def list_users():
     conn = get_connection()
     cursor = conn.cursor()

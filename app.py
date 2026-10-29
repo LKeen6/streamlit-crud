@@ -41,8 +41,30 @@ def login_page():
 def dashboard_page():
     st.subheader('Dashboard')
 
-    for user in users.list_users():
-        st.write(f"ID: {user[0]}, Username: {user[1]}")
+    st.markdown('#### My Info')
+    user = users.get_user(st.session_state.user_id)
+    if user:
+        # st.dataframe (unlike st.data_editor) is read-only
+        st.dataframe({'Field': ['ID', 'Username'], 'Value': [str(user[0]), user[1]]}, hide_index=True)
+
+    st.markdown('#### My Latest Posts')
+    latest_posts = posts.list_posts(created_by=st.session_state.user_id, limit=5)
+
+    if not latest_posts:
+        st.info("You haven't written any posts yet.")
+    else:
+        # st.dataframe can't hold buttons, so lay the table out with columns
+        widths = [3, 2, 2, 1]
+        for col, header in zip(st.columns(widths), ['Title', 'Created', 'Updated', '']):
+            col.markdown(f'**{header}**')
+
+        for post_id, title, body, _, _, created_at, updated_at, _ in latest_posts:
+            title_col, created_col, updated_col, edit_col = st.columns(widths, vertical_alignment='center')
+            title_col.write(title)
+            created_col.write(f'{created_at:%Y-%m-%d %H:%M %Z}')
+            updated_col.write(f'{updated_at:%Y-%m-%d %H:%M %Z}')
+            if edit_col.button('Edit', key=f'dashboard_edit_post_{post_id}'):
+                edit_post_dialog(post_id, title, body)
 
 @st.cache_resource
 def init_tables():
